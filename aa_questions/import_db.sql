@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id INTEGER PRIMARY KEY,
   fname TEXT NOT NULL,
-  lname TEXT NOT NULL,
+  lname TEXT NOT NULL
 );
 
 DROP TABLE IF EXISTS questions;
@@ -69,11 +69,36 @@ VALUES
 INSERT INTO
   questions(title, body, user_id)
 VALUES
-  ('Where is Peter?', 'I have not seen Peter, Has anyone seen him?', 0),
-  ('SQL', 'What does SQL stand for?', 1),
-  ('ADT', 'What is ADT?', 1)
+  ('Where is Peter?', 'I have not seen Peter, Has anyone seen him?', 1),
+  ('SQL', 'What does SQL stand for?', 2),
+  ('ADT', 'What is ADT?', 2)
 ;
 
+INSERT INTO
+    question_follows(user_id, question_id)
+VALUES  
+    (1, 1),
+    (2, 1),
+    (3, 1),
+    (2, 2),
+    (4, 3);
+
+INSERT INTO
+    replies (question_id, parent_reply_id, replier_id, reply_body)
+VALUES
+    (1, 1, 2, 'Peter Parker is in the park'),
+    (2, NULL, 3, 'Structured Query Language'),
+    (3, 2, 1, 'Abstract Data Type');
+
+INSERT INTO
+    question_likes (user_liked_id, question_liked_id)
+VALUES
+    (1, 1),
+    (2, 1),
+    (4, 1),
+    (2, 2),
+    (1, 2),
+    (4, 3);
 
 
 
