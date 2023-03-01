@@ -13,7 +13,6 @@ class QuestionDatabase < SQLite3::Database
 end
 
 class User
-
    attr_accessor :fname, :lname, :id
    def self.find_by_id(id)
       user = QuestionDatabase.instance.execute(<<-SQL, id)
@@ -46,10 +45,18 @@ class User
       @fname = options['fname']
       @lname = options['lname']
    end
+
+   def authored_questions
+      Question.find_by_author_id(id)
+   end
+
+   def authored_replies
+      Reply.find_by_replier_id(id)
+   end
 end
 
 class Question
-   attr_accessor :title, :body, :user_id
+   attr_accessor :title, :body, :author_id
    def self.find_by_id(id)
       question = QuestionDatabase.instance.execute(<<-SQL, id)
       SELECT 
@@ -83,4 +90,47 @@ class Question
       @author_id = options['author_id']
    end
 
+   def author
+      User.find_by_id(self.author_id)
+   end
+
 end
+
+class Reply
+   attr_accessor :id, :question_id, :parent_reply_id, :replier_id, :reply_body
+   def self.find_by_replier_id(replier_id)
+      user_replies = QuestionDatabase.instance.execute(<<-SQL, replier_id)
+      SELECT 
+         * 
+      FROM 
+         replies
+      WHERE 
+         replier_id = ?
+      SQL
+      return nil if user_replies.empty?
+      user_replies.map{|ele| Reply.new(ele)}
+   end
+
+   def self.find_by_question_id(question_id)
+      question_replies = QuestionDatabase.instance.execute(<<-SQL, question_id)
+      SELECT 
+         * 
+      FROM 
+         replies
+      WHERE 
+         question_id = ?
+      SQL
+      return nil if question_replies.empty?
+      question_replies.map{|ele| Reply.new(ele)}
+   end
+
+   def initialize(options)
+      @id = options['id']
+      @question_id = options['question_id']
+      @parent_reply_id = options['parent_reply_id']
+      @replier_id = options['replier_id']
+      @reply_body = options['reply_body']
+   end
+  
+end
+
