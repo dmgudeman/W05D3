@@ -14,9 +14,9 @@ CREATE TABLE questions (
   id INTEGER PRIMARY KEY,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
-  user_id INTEGER NOT NULL,
+  author_id INTEGER NOT NULL,
   
-  FOREIGN KEY(user_id) REFERENCES users(id)
+  FOREIGN KEY(author_id) REFERENCES users(id)
 );
 
 DROP TABLE IF EXISTS question_follows;
@@ -67,7 +67,7 @@ VALUES
 ;
 
 INSERT INTO
-  questions(title, body, user_id)
+  questions(title, body, author_id)
 VALUES
   ('Where is Peter?', 'I have not seen Peter, Has anyone seen him?', 1),
   ('SQL', 'What does SQL stand for?', 2),
