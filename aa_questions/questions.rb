@@ -90,6 +90,10 @@ class Question
       user_questions.map{|ele| Question.new(ele)}
    end
 
+   def self.most_followed(n)
+      QuestionFollow.most_followed_questions(n)
+   end
+
 
    def initialize(options)
       @id = options['id']
@@ -202,7 +206,8 @@ class Reply
 end
 
 class QuestionFollow
-
+   attr_accessor :user_id, :question_id
+   attr_reader :id
    def self.followers_for_question_id(question_id)
       followers = QuestionDatabase.instance.execute(<<-SQL, question_id)
          SElECT
@@ -243,8 +248,6 @@ class QuestionFollow
       questions.map{|ele| Question.new(ele)}
    end
 
-
-
    def self.find_by_id(id)
        questionfollows = QuestionDatabase.instance.execute(<<-SQL, id)
       SELECT 
@@ -256,16 +259,103 @@ class QuestionFollow
       SQL
       QuestionFollow.new(questionfollows.first)
    end
-
+   
+   def self.most_followed_questions(n)
+      most_followed_q = QuestionDatabase.instance.execute(<<-SQL, n)
+        SELECT
+          *
+          FROM
+          questions
+         WHERE
+         id IN (
+         SELECT 
+           question_id
+         FROM
+           question_follows
+         GROUP BY 
+         question_id
+         ORDER BY
+          Count(*) DESC
+         LIMIT ?
+         )
+      SQL
+      return nil if most_followed_q.empty?
+      most_followed_q.map{|ele| Question.new(ele)}
+   end
 
    def initialize(options)
       @id = options['id']
       @user_id = options['user_id']
       @question_id = options['question_id']
    end
+end
+
+class QuestionLike
+   attr_accessor :user_liked_id, :question_liked_id
+   attr_reader :id
+
+   def self.likers_for_question_id(question_id)
+      likers = QuestionDatabase.instance.execute(<<-SQL, question_id)
+      SElECT
+         *
+      FROM 
+         users
+      WHERE
+         id IN (
+         SELECT
+            user_liked_id
+         FROM 
+            question_likes
+         WHERE
+            question_liked_id = ?
+         )
+      SQL
+      return nil if likers.empty?
+      likers.map{|ele| User.new(ele)}
+   end
+
+   def self.num_likes_for_question_id(question_id)
+      num = QuestionDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        Count(*)
+      FROM
+        question_likes
+      WHERE
+        question_liked_id = ?
+      SQL
+      num.first["Count(*)"]
+   end
+
+   def self.liked_questions_for_user_id(user_id)
+      liked_questions = QuestionDatabase.instance.execute(<<-SQL, user_id)
+      SELECT
+         *
+      FROM
+         questions
+      WHERE
+         id IN (
+            SELECT
+               question_liked_id
+            FROM
+               question_likes
+            WHERE
+               user_liked_id = ?
+
+         )
+
+      SQL
+
+      return nil if liked_questions.empty?
+      liked_questions.map{|ele| Question.new(ele)}
+   end
+
+   def initialize(options)
+      @id = options['id']
+      @user_liked_id = options['user_liked_id']
+      @question_liked_id = options['question_liked_id']
+   end
 
 
 
 end
-
 
