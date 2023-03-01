@@ -59,6 +59,29 @@ class User
       QuestionFollow.followed_questions_for_user_id(id)
    end
 
+   def liked_questions
+      QuestionLike.liked_questions_for_user_id(id)
+   end
+
+   def average_karma
+      res = QuestionDatabase.instance.execute(<<-SQL, id)
+      
+      SELECT
+         CAST(count(*)AS FLOAT)/count(DISTINCT (questions.id)) AS average
+      FROM 
+         questions
+      LEFT OUTER JOIN
+         question_likes
+      ON
+         questions.id = question_likes.question_liked_id
+      WHERE
+         questions.author_id = ?
+      AND
+         question_likes.id NOT NULL
+      SQL 
+      res.first["average"]
+   end
+
 
 end
 
@@ -94,6 +117,9 @@ class Question
       QuestionFollow.most_followed_questions(n)
    end
 
+   def self.most_liked(n)
+      QuestionLike.most_liked_questions(n)
+   end
 
    def initialize(options)
       @id = options['id']
@@ -113,6 +139,17 @@ class Question
    def followers
       QuestionFollow.followers_for_question_id(id)
    end
+
+   def likers
+      QuestionLike.likers_for_question_id(id)
+   end
+
+   def num_likes
+      QuestionLike.num_likes_for_question_id(id)
+   end
+
+
+   
 
 end
 
@@ -347,6 +384,29 @@ class QuestionLike
 
       return nil if liked_questions.empty?
       liked_questions.map{|ele| Question.new(ele)}
+   end
+
+   def self.most_liked_questions(n)
+      most_liked_q = QuestionDatabase.instance.execute(<<-SQL, n)
+        SELECT
+          *
+          FROM
+          questions
+         WHERE
+         id IN (
+            SELECT 
+            question_liked_id
+            FROM
+            question_likes
+            GROUP BY 
+            question_liked_id
+            ORDER BY
+            Count(*) DESC
+            LIMIT ?
+         )
+      SQL
+      return nil if most_liked_q.empty?
+      most_liked_q.map{|ele| Question.new(ele)}
    end
 
    def initialize(options)
