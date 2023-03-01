@@ -87,7 +87,7 @@ INSERT INTO
     replies (question_id, parent_reply_id, replier_id, reply_body)
 VALUES
     (1, 1, 2, 'Peter Parker is in the park'),
-    (2, NULL, 3, 'Structured Query Language'),
+    (2, 2, 3, 'Structured Query Language'),
     (3, 2, 1, 'Abstract Data Type');
 
 INSERT INTO
