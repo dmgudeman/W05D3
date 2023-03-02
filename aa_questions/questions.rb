@@ -83,7 +83,6 @@ class User
    end
 end
 
-
 class Question
    attr_reader :id
    attr_accessor :title, :body, :author_id
