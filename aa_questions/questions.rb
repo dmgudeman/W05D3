@@ -81,6 +81,31 @@ class User
       SQL
       res.first["average"]
    end
+
+   def save
+      raise "#{self} already in database" if @id
+      QuestionDatabase.instance.execute(<<-SQL, @fname, @lname)
+      INSERT INTO
+         users (fname, lname)
+      VALUES
+         (?,?)
+      SQL
+      @id = QuestionDatabase.instance.last_insert_row_id
+
+
+   end
+
+   def update
+      raise "#{self} not the in database" unless @id
+      QuestionDatabase.instance.execute(<<-SQL, {fname: fname, lname: lname, id: id})
+      UPDATE
+         users
+      SET
+         fname = :fname, lname = :lname
+      WHERE
+         id = :id
+      SQL
+   end
 end
 
 class Question
@@ -144,6 +169,31 @@ class Question
 
    def num_likes
       QuestionLike.num_likes_for_question_id(id)
+   end
+
+   def save
+      raise "#{self} already in database" if @id
+      QuestionDatabase.instance.execute(<<-SQL, @title, @body, @author_id)
+      INSERT INTO
+         questions (title, body, author_id)
+      VALUES
+         (?,?,?)
+      SQL
+      @id = QuestionDatabase.instance.last_insert_row_id
+
+
+   end
+
+   def update
+      raise "#{self} not the in database" unless @id
+      QuestionDatabase.instance.execute(<<-SQL, @title, @body, @author_id, @id)
+      UPDATE
+         questions
+      SET
+         title = ?, body = ?, author_id = ?
+      WHERE
+         id = ?
+      SQL
    end
 
 
@@ -237,6 +287,31 @@ class Reply
          parent_reply_id = ?
       SQL
       replies.map{|ele| Reply.new(ele)}
+   end
+
+   def save
+      raise "#{self} already in database" if @id
+      QuestionDatabase.instance.execute(<<-SQL, @question_id, @parent_reply_id, @replier_id, @reply_body)
+      INSERT INTO
+         replies (question_id, parent_reply_id, replier_id, reply_body)
+      VALUES
+         (?,?,?,?)
+      SQL
+      @id = QuestionDatabase.instance.last_insert_row_id
+
+
+   end
+
+   def update
+      raise "#{self} not the in database" unless @id
+      QuestionDatabase.instance.execute(<<-SQL, @question_id, @parent_reply_id, @replier_id, @reply_body, @id)
+      UPDATE
+         replies
+      SET
+         question_id = ?, parent_reply_id = ?, replier_id = ?, reply_body = ?
+      WHERE
+         id = ?
+      SQL
    end
 end
 
