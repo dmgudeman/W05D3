@@ -78,11 +78,9 @@ class User
          questions.author_id = ?
       AND
          question_likes.id NOT NULL
-      SQL 
+      SQL
       res.first["average"]
    end
-
-
 end
 
 class Question
